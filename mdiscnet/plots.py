@@ -18,6 +18,11 @@ def reconstruct(model, x, width):
     x_hat = x_hat.reshape(width, width).to('cpu').detach().numpy()
     plt.imshow(x_hat)
     
+def decode_and_plot(z):
+    x_hat = model.decode(z)
+    x_hat = x_hat.reshape(width, width).to('cpu').detach().numpy()
+    plt.imshow(x_hat)
+    return x_hat
     
 def plot_reconstructed(model, width, z0=(-5, 5), z1=(-5, 5), n_img=12):
     img = np.zeros((n_img*width, n_img*width)) # n*width rows by n*width columns
