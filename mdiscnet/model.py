@@ -12,9 +12,13 @@ class Flatten(nn.Module):
 
 class UnFlatten(nn.Module):
 
-    def forward(self, input, size=64 * 1 * 1):
-
-        return input.view(input.size(0), -1, 1, 1)
+    def forward(self, input, size=64 * 2 * 2):
+        """ The size must be the same as the size
+        of the Flatten size after the encoder. """
+        
+        # the last two entries in .view() must be the same as 
+        # the penultimate layer in the encoder before the Flatten 
+        return input.view(input.size(0), -1, 2, 2)
 
 
 class DoubleConv(nn.Module):
@@ -116,23 +120,25 @@ class VAE(nn.Module):
         self.device = device
 
         self.encoder = nn.Sequential(
-            # Input -1 x 512 x 128 (flow field data); -1 x 32 x 32 (MNIST images)
+            # Input -1 x 512 x 512 (mdisc field data); -1 x 32 x 32 (MNIST images)
 
-            DoubleConv(in_channels=image_channels, out_channels=64, kernel = 1), # 64 x 512 x 128; 64 x 32 x 32
+            DoubleConv(in_channels=image_channels, out_channels=64, kernel = 1), # 64 x 512 x 512; 64 x 32 x 32
 
-            Down(64,64, scale=2), # 64 x 256 x 64; 64 x 16 x 16
+            Down(64,64, scale=2), # 64 x 256 x 256; 64 x 16 x 16
 
-            Down(64,64, scale=2), # 64 x 128 x 32; 64 x 8 x 8
+            Down(64,64, scale=2), # 64 x 128 x 128; 64 x 8 x 8
 
-            Down(64,64, scale=2), # 64 x 64 x 16; 64 x 4 x 4
+            Down(64,64, scale=2), # 64 x 64 x 64; 64 x 4 x 4
 
-            Down(64,64, scale=2), # 64 x 32 x 8; 64 x 2 x 2
+            Down(64,64, scale=2), # 64 x 32 x 32; 64 x 2 x 2
             
-            Down(64,64, scale=2), # 64 x 16 x 4; 64 x 1 x 1
+            Down(64,64, scale=2), # 64 x 16 x 16; 64 x 1 x 1
 
-#             Down(64,64, scale=2), # 64 x 8 x 2
+            Down(64,64, scale=2), # 64 x 8 x 8; 
 
-#             Down(64,64, scale=2), # 64 x 4 x 1
+            Down(64,64, scale=2), # 64 x 4 x 4; 
+            
+            Down(64,64, scale=2), # 64 x 2 x 2; 
 
             Flatten() # 256; 64
 
@@ -140,11 +146,11 @@ class VAE(nn.Module):
 
         # h_dim = 256 * 30 * 6
 
-        self.fc1 = nn.Linear(h_dim, z_dim) # z_dim 16; 8
+        self.fc1 = nn.Linear(h_dim, z_dim) # z_dim 2; 2
 
-        self.fc2 = nn.Linear(h_dim, z_dim) # z_dim 16; 8
+        self.fc2 = nn.Linear(h_dim, z_dim) # z_dim 2; 2
 
-        self.fc3 = nn.Linear(z_dim, h_dim) # just before decoder input sampled latent vector (z_dim 16; 8) -> FC3 -> hidden dimension 256; 64
+        self.fc3 = nn.Linear(z_dim, h_dim) # just before decoder input sampled latent vector (z_dim 2; 2) -> FC3 -> hidden dimension 256; 64
 
         # self.fc1 = nn.Sequential(nn.Linear(h_dim, z_dim),nn.LeakyReLU())
 
@@ -156,27 +162,29 @@ class VAE(nn.Module):
 
         self.decoder = nn.Sequential(
 
-            UnFlatten(), # 64 x 4 x 1; 64 x 1 x 1
+            UnFlatten(), # 64 x 2 x 2; 64 x 1 x 1
+            
+            Up(64, 64, scale=2), # 64 x 4 x 4; 64 x 2 x 2
 
-            Up(64, 64, scale=2), # 64 x 8 x 2; 64 x 2 x 2
+            Up(64, 64, scale=2), # 64 x 8 x 8; 64 x 4 x 4
 
-            Up(64, 64, scale=2), # 64 x 16 x 4; 64 x 4 x 4
+            Up(64, 64, scale=2), # 64 x 16 x 16; 64 x 8 x 8
 
-            Up(64, 64, scale=2), # 64 x 32 x 8; 64 x 8 x 8
+            Up(64, 64, scale=2), # 64 x 32 x 32; 64 x 16 x 16
 
-            Up(64, 64, scale=2), # 64 x 64 x 16; 64 x 16 x 16
+            Up(64, 64, scale=2), # 64 x 64 x 64; 64 x 32 x 32
 
-            Up(64, 64, scale=2), # 64 x 128 x 32; 64 x 32 x 32
+            Up(64, 64, scale=2), # 64 x 128 x 128;
 
-#             Up(64, 64, scale=2), # 64 x 256 x 64
-
-#             Up(64, 64, scale=2), # 64 x 512 x 128
-
+            Up(64, 64, scale=2), # 64 x 256 x 256;
+            
+            Up(64, 64, scale=2), # 64 x 512 x 512;
+            
             # DoubleConv(64, 64),
 
             # nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
 
-            nn.Conv2d(64, image_channels, kernel_size=1, stride=1, padding=0, bias=False), # back to the image dimensions -1 x 512 x 128 (flow field data); -1 x 32 x 32 (MNIST images)
+            nn.Conv2d(64, image_channels, kernel_size=1, stride=1, padding=0, bias=False), # back to the image dimensions -1 x 512 x 512 (mdisc field data); -1 x 32 x 32 (MNIST images)
 
 
             # nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1), # 64, 126, 30
@@ -228,9 +236,9 @@ class VAE(nn.Module):
 
 
     def encode(self, x):
-
+        
         h = self.encoder(x)
-
+        
         z, mu, logvar = self.bottleneck(h)
 
         return z, mu, logvar
@@ -239,16 +247,16 @@ class VAE(nn.Module):
     def decode(self, z):
 
         z = self.fc3(z)
-
+       
         z = self.decoder(z)
-        
+                
         return z
 
 
     def forward(self, x):
-
+        
         z, mu, logvar = self.encode(x)
-
+        
         z = self.decode(z) # reconstruction -> recon_x
 
         return z, mu, logvar
