@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from tqdm import tqdm
 from lossfn import loss_var
@@ -6,6 +7,7 @@ from lossfn import loss_var
 def train_model(model, data, lr=1e-3, epochs=20):
     model = model.to(model.device)
     opt = torch.optim.Adam(params=model.parameters(), lr=lr)
+    hist = {'loss':np.zeros(epochs)}
     for epoch in tqdm(range(epochs)):
         for x, y in data:
             x = x.to(model.device) # GPU
@@ -15,6 +17,8 @@ def train_model(model, data, lr=1e-3, epochs=20):
             loss.backward()
             opt.step()
             
+        hist['loss'][epoch] = loss.item()
         # Update the progress bar with relevant information
-        tqdm.write(f"Epoch: {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
-    return model
+        if epoch%100 == 0:
+            tqdm.write(f"Epoch: {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
+    return model, hist
