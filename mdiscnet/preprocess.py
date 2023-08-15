@@ -12,8 +12,8 @@ def online_mean_std(custom_dataset):
         data = data[0].flatten() # data[1] is the label
 
         # Accumulate the sum and squared differences
-        channel_sum += torch.sum(data)
-        channel_sum_squared += torch.sum(data.pow(2))
+        channel_sum += torch.nansum(data)
+        channel_sum_squared += torch.nansum(data.pow(2))
 
         count += len(data) # number of points in each slice
 
@@ -22,3 +22,12 @@ def online_mean_std(custom_dataset):
     std = torch.sqrt((channel_sum_squared / count) - mean.pow(2))
     
     return mean, std
+
+class ClipTransform:
+    """ Define a custom clip transformation"""
+    def __init__(self, min_value=None, max_value=None):
+        self.min_value = min_value
+        self.max_value = max_value
+
+    def __call__(self, data):
+        return torch.clip(data, self.min_value, self.max_value)
