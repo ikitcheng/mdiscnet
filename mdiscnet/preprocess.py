@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 def online_mean_std(custom_dataset):
     """ Online estimation of mean and standard deviation of single channel grid data. """
@@ -31,3 +32,13 @@ class ClipTransform:
 
     def __call__(self, data):
         return torch.clip(data, self.min_value, self.max_value)
+    
+class ReplaceNaN:
+    """ Define a custom transformation to replace NaN values with a constant """
+    def __init__(self, constant):
+        self.constant = constant
+
+    def __call__(self, data):
+        data = np.array(data)
+        data[np.isnan(data)] = self.constant
+        return torch.from_numpy(data)
