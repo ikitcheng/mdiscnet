@@ -3,7 +3,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-def plot_latent(model, data):
+def plot_latent(model, data, output=None):
     N = len(data)
     kh_arr = np.zeros(N)
     rmp_arr = np.zeros(N)
@@ -26,11 +26,19 @@ def plot_latent(model, data):
     s1 = ax[0].scatter(z_arr[:, 0], z_arr[:, 1], c=kh_arr, cmap='jet')
     s2 = ax[1].scatter(z_arr[:, 0], z_arr[:, 1], c=rmp_arr, cmap='jet')
     s3 = ax[2].scatter(rmp_arr, kh_arr)
+    ax[0].set_xlabel('lv1')
+    ax[0].set_ylabel('lv2')
+    ax[1].set_xlabel('lv1')
+    ax[1].set_ylabel('lv2')
     ax[2].set_xlabel('rmp')
     ax[2].set_ylabel('Kh')
     plt.colorbar(s1, ax=ax[0], label='kh')
     plt.colorbar(s2, ax=ax[1], label='rmp')
     plt.tight_layout()
+    
+    if output:
+        plt.savefig(output, bbox_inches="tight", dpi=300)
+    return ax
     
 def reconstruct(model, x, width):
     z, *_ = model.encode(x)
