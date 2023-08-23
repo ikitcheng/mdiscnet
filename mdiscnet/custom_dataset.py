@@ -1,29 +1,34 @@
 from torch.utils.data import Dataset
+import os
+import numpy as np
+import util
 import pickle
 
 class CustomDataset(Dataset):
-    def __init__(self, data_path, labels_path, transform=None):
-        self.data, self.labels = self.load_data(data_path, labels_path)
+    def __init__(self, root_dir: str, labels_path: str, transform=None):
+        self.labels = self.load_labels(labels_path)
+        self.root_dir = root_dir
         self.transform = transform
         
     def __len__(self):
-        return len(self.data)
+        return len(self.labels)
 
     def __getitem__(self, index):
-        # Get a sample from the dataset based on the given index
-        sample = self.data[index]
-        label = self.labels[index]
+        """ Get a sample from the dataset based on the given index """
+        data_path = os.path.join(self.root_dir,
+                                self.labels[index])
+        sample = self.load_data(data_path)
+        label = self.labels[index][0:-4]
         
-        # Apply the transforms, if provided
         if self.transform is not None:
             sample = self.transform(sample).float()
-
         return sample, label
 
-    def load_data(self, data_path, labels_path):
-        with open(data_path, 'rb') as f:
-            data = pickle.load(f)
-            
-        with open(labels_path, 'rb') as f:
-            labels = pickle.load(f)
-        return data, labels
+    def load_data(self, data_path):
+        data = util.load_result(data_path)
+        return data
+    
+    def load_labels(self, labels_path):
+        labels = np.array(util.load_txt(labels_path).strip().split('\n'))
+        return labels
+
