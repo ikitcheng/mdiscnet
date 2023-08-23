@@ -46,10 +46,12 @@ def reconstruct(model, x, width):
     x_hat = x_hat.reshape(width, width).to('cpu').detach().numpy()
     return x_hat
     
-def decode_and_plot(z):
-    x_hat = model.decode(z)
+def decode_and_plot(model, z, width, plot=False):
+    """ Decode (and plot) a single latent vector """
+    x_hat = model.decode(z) # z has shape (1, 1, n_latent_vars)
     x_hat = x_hat.reshape(width, width).to('cpu').detach().numpy()
-    plt.imshow(x_hat)
+    if plot:
+        plt.imshow(x_hat, cmap='jet')
     return x_hat
     
 def plot_reconstructed(model, width, z0=(-5, 5), z1=(-5, 5), n_img=12):
