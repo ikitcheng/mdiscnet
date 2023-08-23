@@ -29,7 +29,7 @@ def create_model_dict(kh, rmp, nr, nmu, c2d_r, c2d_mu, v2d_alpha, v2d_Br=None, v
 
 def download_data_from_server(filename):
     # Check if already file already exists:
-    if not os.path.isfile(f"./data/MDISC/small_dataset/{filename}"):
+    if not os.path.isfile(f"{config.PATH_TO_DATA}{filename}"):
         print("File does not exist. Downloading...")
         # Get file using SSH and SCP
         remote_host = "ikc19@zuserver1.star.ucl.ac.uk"
