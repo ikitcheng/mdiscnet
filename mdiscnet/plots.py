@@ -23,9 +23,9 @@ def plot_latent(model, data, output=None):
         kh_arr[i] = kh
         rmp_arr[i] = rmp
         
-    s1 = ax[0].scatter(z_arr[:, 0], z_arr[:, 1], c=kh_arr, cmap='jet')
-    s2 = ax[1].scatter(z_arr[:, 0], z_arr[:, 1], c=rmp_arr, cmap='jet')
-    s3 = ax[2].scatter(rmp_arr, kh_arr)
+    s1 = ax[0].scatter(z_arr[:, 0], z_arr[:, 1], s=1, c=kh_arr, cmap='jet')
+    s2 = ax[1].scatter(z_arr[:, 0], z_arr[:, 1], s=1, c=rmp_arr, cmap='jet')
+    s3 = ax[2].scatter(rmp_arr, kh_arr, s=1, c='k')
     ax[0].set_xlabel('lv1')
     ax[0].set_ylabel('lv2')
     ax[1].set_xlabel('lv1')
